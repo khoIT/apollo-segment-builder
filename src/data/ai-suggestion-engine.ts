@@ -15,10 +15,10 @@ interface ParsedIntent {
 
 /* ── Keyword pattern matchers ── */
 
-/** Extract a number followed by "day(s)" from text, default fallback */
-function extractDays(text: string, fallback: number): string {
+/** Extract a number followed by "day(s)" from text, returns just the number string */
+function extractDaysNum(text: string, fallback: number): string {
   const match = text.match(/(\d+)\s*(?:days?|d)/i);
-  return match ? `${match[1]} days ago` : `${fallback} days ago`;
+  return match ? match[1] : String(fallback);
 }
 
 /** Extract a raw number from text near a keyword */
@@ -68,22 +68,22 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
 
   // ── Churn / Inactive patterns ──
   if (/churn|inactive|lapsed|haven'?t\s*logged|not\s*login|quit|left|gone|drop.?off|absent/i.test(lower)) {
-    const days = extractDays(lower, 30);
-    conditions.push({ id: nextId('c'), property: 'last_login', operator: 'greater_than', value: days });
+    const days = extractDaysNum(lower, 30);
+    conditions.push({ id: nextId('c'), property: 'last_login', operator: 'after_x_days', value: days });
     nameParts.push('Churned');
   }
 
   // ── Recently active ──
   if (/active\s*recently|recently\s*active|logged\s*in\s*recently|daily\s*active/i.test(lower)) {
-    const days = extractDays(lower, 7);
-    conditions.push({ id: nextId('c'), property: 'last_login', operator: 'less_than', value: days });
+    const days = extractDaysNum(lower, 7);
+    conditions.push({ id: nextId('c'), property: 'last_login', operator: 'within_x_days', value: days });
     nameParts.push('Active');
   }
 
   // ── New user ──
   if (/new\s*(user|player|register|account)|recently\s*(register|sign|join)|just\s*(join|register)/i.test(lower)) {
-    const days = extractDays(lower, 7);
-    conditions.push({ id: nextId('c'), property: 'register_time', operator: 'less_than', value: days });
+    const days = extractDaysNum(lower, 7);
+    conditions.push({ id: nextId('c'), property: 'register_time', operator: 'within_x_days', value: days });
     nameParts.push('New Users');
   }
 
@@ -102,20 +102,20 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
 
   // ── Never paid / free users ──
   if (/free\s*(user|player)|never\s*(paid|purchas|bought)|no\s*(purchase|payment|transaction)|non.?pay|f2p/i.test(lower)) {
-    conditions.push({ id: nextId('c'), property: 'total_trans', operator: 'equals', value: '0' });
+    conditions.push({ id: nextId('c'), property: 'total_trans', operator: 'equal', value: '0' });
     nameParts.push('Free Players');
   }
 
   // ── First-time buyer ──
   if (/first.?time\s*(buy|pay|purchas)|single\s*purchase|one\s*transaction|1st\s*purchase/i.test(lower)) {
-    conditions.push({ id: nextId('c'), property: 'total_trans', operator: 'equals', value: '1' });
+    conditions.push({ id: nextId('c'), property: 'total_trans', operator: 'equal', value: '1' });
     nameParts.push('First-time Buyer');
   }
 
   // ── Recent payment ──
   if (/recent.?(pay|purchas|buy|trans)|last\s*(pay|purchas|buy)/i.test(lower)) {
-    const days = extractDays(lower, 7);
-    conditions.push({ id: nextId('c'), property: 'last_purchase_time', operator: 'less_than', value: days });
+    const days = extractDaysNum(lower, 7);
+    conditions.push({ id: nextId('c'), property: 'last_purchase_time', operator: 'within_x_days', value: days });
     nameParts.push('Recent Buyer');
   }
 
@@ -136,14 +136,14 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
   // ── Platform detection ──
   const platform = detectPlatform(lower);
   if (platform) {
-    conditions.push({ id: nextId('c'), property: 'os_platform', operator: 'equals', value: platform });
+    conditions.push({ id: nextId('c'), property: 'os_platform', operator: 'equal', value: platform });
     nameParts.push(platform);
   }
 
   // ── Country detection ──
   const country = detectCountry(lower);
   if (country) {
-    conditions.push({ id: nextId('c'), property: 'country_code', operator: 'equals', value: country });
+    conditions.push({ id: nextId('c'), property: 'country_code', operator: 'equal', value: country });
     nameParts.push(country);
   }
 
@@ -166,7 +166,7 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
 
   // ── Fallback if nothing matched ──
   if (conditions.length === 0) {
-    conditions.push({ id: nextId('c'), property: '', operator: 'equals', value: '' });
+    conditions.push({ id: nextId('c'), property: '', operator: 'equal', value: '' });
     return { conditions, logic, segmentName: '' };
   }
 

@@ -17,16 +17,25 @@ function propCategory(key: string): string {
 }
 
 const OPERATOR_TEXT: Record<OperatorType, string> = {
-  equals: 'equals to',
-  not_equals: 'not equals to',
-  greater_than: 'greater than',
-  less_than: 'less than',
-  between: 'between',
+  equal: 'equals to',
+  not_equal: 'not equals to',
   contains: 'contains',
-  is_null: 'is empty',
-  is_not_null: 'is not empty',
+  less_than: 'less than',
+  greater_than: 'greater than',
+  less_equal: 'less or equal to',
+  greater_equal: 'greater or equal to',
+  between: 'between',
+  before: 'before',
+  after: 'after',
+  within_x_days: 'within X days',
+  within_x_hours: 'within X hours',
+  within_x_minutes: 'within X minutes',
+  after_x_days: 'after X days',
+  after_x_hours: 'after X hours',
+  after_x_minutes: 'after X minutes',
   in: 'is one of',
   not_in: 'is not one of',
+  on_nth_day: 'on nth day',
 };
 
 function operatorText(op: OperatorType): string {

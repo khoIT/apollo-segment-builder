@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Upload, Plus, Trash2 } from 'lucide-react';
 import type { TemplateTag, Condition, OperatorType, LogicOperator } from '../../types/segment-builder-types';
-import { PROPERTIES, OPERATORS } from '../../data/mock-data';
+import { PROPERTIES, getOperatorsForType } from '../../data/mock-data';
 
 interface ContributeModalProps {
   onClose: () => void;
@@ -24,7 +24,7 @@ let idCounter = 0;
 function nextId() { return `contrib-${Date.now()}-${++idCounter}`; }
 
 function emptyCondition(): Condition {
-  return { id: nextId(), property: '', operator: 'equals', value: '' };
+  return { id: nextId(), property: '', operator: 'equal', value: '' };
 }
 
 /** Grouped property options for the select dropdown */
@@ -136,7 +136,7 @@ export function ContributeModal({ onClose, onSubmit }: ContributeModalProps) {
                       value={cond.operator} onChange={(e) => updateCondition(idx, { ...cond, operator: e.target.value as OperatorType })}
                       className="h-8 px-2 rounded border border-slate-200 bg-white text-xs w-20 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
                     >
-                      {OPERATORS.map((op) => <option key={op.value} value={op.value}>{op.label}</option>)}
+                      {getOperatorsForType(PROPERTIES.find(p => p.key === cond.property)?.dataType ?? 'string').map((op) => <option key={op.value} value={op.value}>{op.label}</option>)}
                     </select>
                     {!['is_null', 'is_not_null'].includes(cond.operator) && (
                       <input

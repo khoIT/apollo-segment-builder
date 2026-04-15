@@ -38,7 +38,7 @@ export function TemplateLibrary({ onUseTemplate }: TemplateLibraryProps) {
         logic: data.logic,
         conditions: validConditions.length > 0
           ? validConditions
-          : [{ id: `c-${Date.now()}`, property: '', operator: 'equals', value: '' }],
+          : [{ id: `c-${Date.now()}`, property: '', operator: 'equal', value: '' }],
       }],
       groupLogic: 'AND',
       abTestResult: {

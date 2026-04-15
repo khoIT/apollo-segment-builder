@@ -14,7 +14,7 @@ let conditionIdCounter = 300;
 function newConditionId() { return `cond-${Date.now()}-${++conditionIdCounter}`; }
 
 function createEmptyCondition(): Condition {
-  return { id: newConditionId(), property: '', operator: 'equals', value: '' };
+  return { id: newConditionId(), property: '', operator: 'equal', value: '' };
 }
 
 function createEmptyGroup(): ConditionGroup {

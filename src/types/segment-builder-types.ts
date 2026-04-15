@@ -1,16 +1,44 @@
 /* ── Segment Builder Types ── */
 
+/** Apollo Platform data types (from Journey - Misc spec) */
+export type DataType =
+  | 'string'
+  | 'int64'
+  | 'float64'
+  | 'datetime'
+  | 'boolean'
+  | 'array_int64'
+  | 'array_float64'
+  | 'array_string'
+  | 'array_object'
+  | 'array_datetime';
+
+/** Operators aligned with Apollo Platform spec */
 export type OperatorType =
-  | 'equals'
-  | 'not_equals'
-  | 'greater_than'
-  | 'less_than'
-  | 'between'
+  // string
+  | 'equal'
+  | 'not_equal'
   | 'contains'
-  | 'is_null'
-  | 'is_not_null'
+  // numeric (int64 / float64)
+  | 'less_than'
+  | 'greater_than'
+  | 'less_equal'
+  | 'greater_equal'
+  | 'between'
+  // datetime
+  | 'before'
+  | 'after'
+  | 'within_x_days'
+  | 'within_x_hours'
+  | 'within_x_minutes'
+  | 'after_x_days'
+  | 'after_x_hours'
+  | 'after_x_minutes'
+  // array
   | 'in'
-  | 'not_in';
+  | 'not_in'
+  // array_datetime
+  | 'on_nth_day';
 
 export type LogicOperator = 'AND' | 'OR';
 
@@ -20,7 +48,7 @@ export interface PropertyDef {
   key: string;
   label: string;
   category: PropertyCategory;
-  type: 'string' | 'number' | 'date' | 'multi_value';
+  dataType: DataType;
 }
 
 export interface Condition {

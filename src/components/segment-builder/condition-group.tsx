@@ -15,7 +15,7 @@ function newConditionId() {
 }
 
 function createEmptyCondition(): Condition {
-  return { id: newConditionId(), property: '', operator: 'equals', value: '' };
+  return { id: newConditionId(), property: '', operator: 'equal', value: '' };
 }
 
 export function ConditionGroupCard({ group, onChange, onRemove, canRemove }: ConditionGroupProps) {
