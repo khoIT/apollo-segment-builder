@@ -267,3 +267,36 @@ export const MOCK_PRODUCTS = [
   { code: 'garena-free-fire', name: 'Garena Free Fire' },
   { code: 'lien-quan-mobile', name: 'Lien Quan Mobile' },
 ];
+
+/* ── Pre-seeded Saved Segments ── */
+
+export const MOCK_SAVED_SEGMENTS: import('../types/segment-builder-types').Segment[] = [
+  {
+    id: 'seg-seed-1',
+    name: 'Churned Paying Players (30d)',
+    groups: MOCK_TEMPLATES[0].groups,
+    groupLogic: 'AND',
+    estimatedAudience: 142300,
+  },
+  {
+    id: 'seg-seed-2',
+    name: 'New Users — Zero Purchases',
+    groups: MOCK_TEMPLATES[3].groups,
+    groupLogic: 'AND',
+    estimatedAudience: 387200,
+  },
+  {
+    id: 'seg-seed-3',
+    name: 'VIP iOS Whales At Risk',
+    groups: [{
+      id: 'g-seed-3a', negated: false, logic: 'AND',
+      conditions: [
+        { id: 'cs-1', property: 'total_payment', operator: 'greater_than', value: '1000000' },
+        { id: 'cs-2', property: 'last_login', operator: 'after_x_days', value: '14' },
+        { id: 'cs-3', property: 'os_platform', operator: 'equal', value: 'iOS' },
+      ],
+    }],
+    groupLogic: 'AND',
+    estimatedAudience: 8750,
+  },
+];

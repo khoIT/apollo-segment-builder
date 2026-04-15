@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Plus, Save, Sparkles, ArrowLeft } from 'lucide-react';
 import type { ConditionGroup, LogicOperator, Condition, Segment } from '../../types/segment-builder-types';
 import { ConditionGroupCard } from './condition-group';
-import { SavedSegmentsPanel } from './saved-segments-panel';
 import { SegmentPreviewPanel } from './segment-preview-panel';
 import { AiSuggestionInput } from './ai-suggestion-input';
 import { useAudienceEstimate } from '../../hooks/use-audience-estimate';
@@ -25,17 +24,23 @@ interface SegmentBuilderProps {
   initialGroups?: ConditionGroup[];
   initialGroupLogic?: LogicOperator;
   initialName?: string;
+  /** ID of segment being edited (from listing) */
+  editingId?: string | null;
   onClearInitial?: () => void;
   onBack?: () => void;
+  /** Notify parent (container) when segment is saved */
+  onSave?: (segment: Segment) => void;
 }
 
-export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, onClearInitial, onBack }: SegmentBuilderProps) {
+export function SegmentBuilder({
+  initialGroups, initialGroupLogic, initialName,
+  editingId: externalEditingId, onClearInitial, onBack, onSave,
+}: SegmentBuilderProps) {
   const [groups, setGroups] = useState<ConditionGroup[]>(initialGroups ?? [createEmptyGroup()]);
   const [groupLogic, setGroupLogic] = useState<LogicOperator>(initialGroupLogic ?? 'AND');
   const [segmentName, setSegmentName] = useState(initialName ?? '');
   const [saved, setSaved] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [savedSegments, setSavedSegments] = useState<Segment[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(externalEditingId ?? null);
 
   const estimate = useAudienceEstimate(groups);
 
@@ -59,7 +64,6 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
 
   const handleSave = () => {
     if (!segmentName.trim()) return;
-
     const segment: Segment = {
       id: editingId ?? `seg-${Date.now()}`,
       name: segmentName,
@@ -67,20 +71,10 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
       groupLogic,
       estimatedAudience: estimate,
     };
-
-    setSavedSegments((prev) => {
-      const exists = prev.findIndex((s) => s.id === segment.id);
-      if (exists >= 0) {
-        const next = [...prev];
-        next[exists] = segment;
-        return next;
-      }
-      return [segment, ...prev];
-    });
-
-    setSaved(true);
     setEditingId(segment.id);
+    setSaved(true);
     onClearInitial?.();
+    onSave?.(segment);
   };
 
   const handleReset = () => {
@@ -92,23 +86,6 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
     onClearInitial?.();
   };
 
-  const handleLoad = (segment: Segment) => {
-    setGroups(JSON.parse(JSON.stringify(segment.groups)));
-    setGroupLogic(segment.groupLogic);
-    setSegmentName(segment.name);
-    setEditingId(segment.id);
-    setSaved(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDelete = (id: string) => {
-    setSavedSegments((prev) => prev.filter((s) => s.id !== id));
-    if (editingId === id) {
-      handleReset();
-    }
-  };
-
-  /** Apply AI-generated conditions into the builder */
   const handleAiApply = (aiGroups: ConditionGroup[], aiLogic: LogicOperator, aiName: string) => {
     setGroups(aiGroups);
     setGroupLogic(aiLogic);
@@ -123,17 +100,19 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
 
   return (
     <div className="space-y-6">
-      {/* Back button */}
+      {/* Back button — always shown to go back to listing */}
       {onBack && (
         <button onClick={onBack} className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 cursor-pointer">
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} /> Back to Segments
         </button>
       )}
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Segment Builder</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            {editingId ? 'Edit Segment' : 'New Segment'}
+          </h1>
           <p className="text-sm text-slate-500 mt-1">Define audience conditions to build a player segment</p>
         </div>
         <div className="flex items-center gap-3">
@@ -141,7 +120,7 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
             onClick={handleReset}
             className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            {editingId ? 'New Segment' : 'Reset'}
+            Reset
           </button>
           <button
             onClick={handleSave}
@@ -174,11 +153,9 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
         )}
       </div>
 
-      {/* Two-column layout: conditions (left) + preview (right on lg+) */}
+      {/* Two-column: conditions (left) + preview (right on lg+) */}
       <div className="flex gap-5 items-start">
-        {/* Left column — condition builder */}
         <div className="flex-1 min-w-0 space-y-3">
-          {/* Condition groups */}
           {groups.map((group, idx) => (
             <div key={group.id}>
               {idx > 0 && (
@@ -202,7 +179,6 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
             </div>
           ))}
 
-          {/* Add group */}
           {groups.length < 4 && (
             <button
               onClick={handleAddGroup}
@@ -214,19 +190,15 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
           )}
         </div>
 
-        {/* Right column — sticky preview panel, hidden below lg */}
         <div className="hidden lg:block w-72 shrink-0 sticky top-6">
           <SegmentPreviewPanel groups={groups} groupLogic={groupLogic} audienceEstimate={estimate} />
         </div>
       </div>
 
-      {/* Preview below conditions on small screens */}
+      {/* Preview below on small screens */}
       <div className="lg:hidden">
         <SegmentPreviewPanel groups={groups} groupLogic={groupLogic} audienceEstimate={estimate} />
       </div>
-
-      {/* Saved segments listing */}
-      <SavedSegmentsPanel segments={savedSegments} onLoad={handleLoad} onDelete={handleDelete} />
     </div>
   );
 }
