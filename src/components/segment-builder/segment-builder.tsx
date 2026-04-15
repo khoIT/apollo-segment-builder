@@ -3,6 +3,7 @@ import { Plus, Save, Users, Sparkles, ArrowLeft } from 'lucide-react';
 import type { ConditionGroup, LogicOperator, Condition, Segment } from '../../types/segment-builder-types';
 import { ConditionGroupCard } from './condition-group';
 import { SavedSegmentsPanel } from './saved-segments-panel';
+import { SegmentPreviewPanel } from './segment-preview-panel';
 import { AiSuggestionInput } from './ai-suggestion-input';
 import { useAudienceEstimate } from '../../hooks/use-audience-estimate';
 
@@ -223,6 +224,9 @@ export function SegmentBuilder({ initialGroups, initialGroupLogic, initialName, 
           Add condition group
         </button>
       )}
+
+      {/* Segment preview — natural language summary */}
+      <SegmentPreviewPanel groups={groups} groupLogic={groupLogic} />
 
       {/* Saved segments listing */}
       <SavedSegmentsPanel segments={savedSegments} onLoad={handleLoad} onDelete={handleDelete} />
