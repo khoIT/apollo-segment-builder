@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { Search, Plus, Pencil, Trash2, Copy, Users, Filter, Layers } from 'lucide-react';
-import type { Segment } from '../../types/segment-builder-types';
+import type { Segment, SegmentType } from '../../types/segment-builder-types';
 import { PROPERTIES, OPERATORS } from '../../data/mock-data';
+
+/* ── Segment type badge config ── */
+const TYPE_BADGE: Record<SegmentType, { icon: string; label: string; cls: string }> = {
+  dynamic:  { icon: '⟳', label: 'Dynamic',  cls: 'bg-blue-100 text-blue-700' },
+  static:   { icon: '❄', label: 'Static',   cls: 'bg-slate-100 text-slate-600' },
+  realtime: { icon: '⚡', label: 'Realtime', cls: 'bg-emerald-100 text-emerald-700' },
+};
 
 interface SegmentListingProps {
   segments: Segment[];
@@ -61,8 +68,9 @@ export function SegmentListing({ segments, onEdit, onDelete, onDuplicate, onCrea
       {filtered.length > 0 ? (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[1fr_120px_100px_80px] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="grid grid-cols-[1fr_100px_110px_90px_80px] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             <span>Segment</span>
+            <span>Type</span>
             <span>Audience</span>
             <span>Conditions</span>
             <span className="text-right">Actions</span>
@@ -74,7 +82,7 @@ export function SegmentListing({ segments, onEdit, onDelete, onDuplicate, onCrea
             return (
               <div
                 key={seg.id}
-                className="grid grid-cols-[1fr_120px_100px_80px] gap-4 px-5 py-4 border-b border-slate-50 hover:bg-slate-50/50 transition-colors group"
+                className="grid grid-cols-[1fr_100px_110px_90px_80px] gap-4 px-5 py-4 border-b border-slate-50 hover:bg-slate-50/50 transition-colors group"
               >
                 {/* Name + condition preview */}
                 <div className="min-w-0">
@@ -96,6 +104,18 @@ export function SegmentListing({ segments, onEdit, onDelete, onDuplicate, onCrea
                       <span className="text-[10px] text-slate-400 self-center">+{totalConds - 3} more</span>
                     )}
                   </div>
+                </div>
+
+                {/* Segment type badge */}
+                <div className="flex items-center">
+                  {(() => {
+                    const badge = TYPE_BADGE[seg.segmentType ?? 'dynamic'];
+                    return (
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>
+                        {badge.icon} {badge.label}
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 {/* Audience */}

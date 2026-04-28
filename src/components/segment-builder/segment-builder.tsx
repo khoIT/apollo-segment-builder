@@ -1,10 +1,41 @@
 import { useState } from 'react';
 import { Plus, Save, Sparkles, ArrowLeft } from 'lucide-react';
-import type { ConditionGroup, LogicOperator, Condition, Segment } from '../../types/segment-builder-types';
+import type { ConditionGroup, LogicOperator, Condition, Segment, SegmentType } from '../../types/segment-builder-types';
 import { ConditionGroupCard } from './condition-group';
 import { SegmentPreviewPanel } from './segment-preview-panel';
 import { AiSuggestionInput } from './ai-suggestion-input';
 import { useAudienceEstimate } from '../../hooks/use-audience-estimate';
+
+/* ── Segment type options ── */
+const SEGMENT_TYPES: {
+  value: SegmentType;
+  icon: string;
+  label: string;
+  desc: string;
+  activeClass: string;
+}[] = [
+  {
+    value: 'dynamic',
+    icon: '⟳',
+    label: 'Dynamic',
+    desc: 'Re-computed on demand or by schedule',
+    activeClass: 'bg-blue-50 border-blue-400 text-blue-700',
+  },
+  {
+    value: 'static',
+    icon: '❄',
+    label: 'Static',
+    desc: 'Frozen snapshot — size never changes',
+    activeClass: 'bg-slate-100 border-slate-400 text-slate-700',
+  },
+  {
+    value: 'realtime',
+    icon: '⚡',
+    label: 'Realtime',
+    desc: 'Always queries live on page load',
+    activeClass: 'bg-emerald-50 border-emerald-400 text-emerald-700',
+  },
+];
 
 let groupIdCounter = 200;
 function newGroupId() { return `grp-${Date.now()}-${++groupIdCounter}`; }
@@ -39,6 +70,7 @@ export function SegmentBuilder({
   const [groups, setGroups] = useState<ConditionGroup[]>(initialGroups ?? [createEmptyGroup()]);
   const [groupLogic, setGroupLogic] = useState<LogicOperator>(initialGroupLogic ?? 'AND');
   const [segmentName, setSegmentName] = useState(initialName ?? '');
+  const [segmentType, setSegmentType] = useState<SegmentType>('dynamic');
   const [saved, setSaved] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(externalEditingId ?? null);
 
@@ -67,6 +99,7 @@ export function SegmentBuilder({
     const segment: Segment = {
       id: editingId ?? `seg-${Date.now()}`,
       name: segmentName,
+      segmentType,
       groups: JSON.parse(JSON.stringify(groups)),
       groupLogic,
       estimatedAudience: estimate,
@@ -151,6 +184,27 @@ export function SegmentBuilder({
             <Sparkles size={12} /> Saved
           </span>
         )}
+      </div>
+
+      {/* Segment type selector */}
+      <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3">
+        <label className="text-sm font-medium text-slate-700 whitespace-nowrap w-32 shrink-0">Segment Type</label>
+        <div className="flex gap-2 flex-1">
+          {SEGMENT_TYPES.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSegmentType(opt.value)}
+              className={`flex-1 flex flex-col items-start px-3 py-2 rounded-lg border-2 transition-all cursor-pointer text-left ${
+                segmentType === opt.value
+                  ? opt.activeClass
+                  : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <span className="text-xs font-bold leading-tight">{opt.icon} {opt.label}</span>
+              <span className="text-[10px] mt-0.5 leading-tight opacity-75">{opt.desc}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Two-column: conditions (left) + preview (right on lg+) */}
