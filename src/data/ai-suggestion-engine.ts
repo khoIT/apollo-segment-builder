@@ -87,50 +87,97 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
     nameParts.push('New Users');
   }
 
-  // ── High value / whale ──
-  if (/whale|high.?value|big\s*spend|heavy\s*spend|vip|top\s*spend|high\s*pay/i.test(lower)) {
-    const amount = extractNumber(lower, /spend|pay|value|whale/i, 500000);
-    conditions.push({ id: nextId('c'), property: 'total_payment', operator: 'greater_than', value: amount });
-    nameParts.push('High-Value');
+  // ── High value / whale / recharge ──
+  if (/whale|high.?value|big\s*(spend|recharge)|top\s*spend|nạp\s*nhiều/i.test(lower)) {
+    const amount = extractNumber(lower, /spend|recharge|nạp|value|whale/i, 5000000);
+    conditions.push({ id: nextId('c'), property: 'total_recharge', operator: 'greater_than', value: amount });
+    nameParts.push('Whale');
   }
 
-  // ── Has paid / paying users ──
-  if (/paid|paying|buyer|purchas|bought|spender|monetiz/i.test(lower) && !nameParts.includes('High-Value')) {
-    conditions.push({ id: nextId('c'), property: 'total_payment', operator: 'greater_than', value: '0' });
+  // ── Has recharged / paying users ──
+  if (/paid|paying|recharg|buyer|purchas|bought|spender|monetiz|nạp tiền/i.test(lower) && !nameParts.includes('Whale')) {
+    conditions.push({ id: nextId('c'), property: 'total_recharge', operator: 'greater_than', value: '0' });
     nameParts.push('Paying');
   }
 
-  // ── Never paid / free users ──
-  if (/free\s*(user|player)|never\s*(paid|purchas|bought)|no\s*(purchase|payment|transaction)|non.?pay|f2p/i.test(lower)) {
-    conditions.push({ id: nextId('c'), property: 'total_trans', operator: 'equal', value: '0' });
-    nameParts.push('Free Players');
+  // ── Never recharged / free users ──
+  if (/free\s*(user|player)|never\s*(paid|recharg|purchas|nạp)|no\s*(recharge|purchase|payment)|non.?pay|f2p|chưa nạp/i.test(lower)) {
+    conditions.push({ id: nextId('c'), property: 'recharge_count', operator: 'equal', value: '0' });
+    nameParts.push('Non-Payer');
   }
 
-  // ── First-time buyer ──
-  if (/first.?time\s*(buy|pay|purchas)|single\s*purchase|one\s*transaction|1st\s*purchase/i.test(lower)) {
-    conditions.push({ id: nextId('c'), property: 'total_trans', operator: 'equal', value: '1' });
-    nameParts.push('First-time Buyer');
+  // ── First-time recharge ──
+  if (/first.?time\s*(recharg|buy|pay|purchas)|single\s*purchase|1st\s*(recharge|purchase)/i.test(lower)) {
+    conditions.push({ id: nextId('c'), property: 'recharge_count', operator: 'equal', value: '1' });
+    nameParts.push('First Recharge');
   }
 
-  // ── Recent payment ──
-  if (/recent.?(pay|purchas|buy|trans)|last\s*(pay|purchas|buy)/i.test(lower)) {
+  // ── Recent recharge ──
+  if (/recent.?(recharg|pay|purchas|buy)|last\s*(recharg|pay|purchas|buy)/i.test(lower)) {
     const days = extractDaysNum(lower, 7);
-    conditions.push({ id: nextId('c'), property: 'last_purchase_time', operator: 'within_x_days', value: days });
-    nameParts.push('Recent Buyer');
+    conditions.push({ id: nextId('c'), property: 'last_recharge', operator: 'within_x_days', value: days });
+    nameParts.push('Recent Recharge');
   }
 
-  // ── High level ──
+  // ── High ladder / rank ──
+  if (/gold|platinum|diamond|master|ladder\s*(rank|level|high|top|>=?\s*\d)|rank\s*(high|top|\d+)|cao rank/i.test(lower)) {
+    const level = extractNumber(lower, /ladder|rank|level/i, 5);
+    conditions.push({ id: nextId('c'), property: 'ladder_level', operator: 'greater_equal', value: level });
+    nameParts.push('High-Rank');
+  }
+
+  // ── Low ladder / beginner rank ──
+  if (/bronze|silver|beginner|newbie|noob|starter|low\s*rank|thấp rank/i.test(lower)) {
+    const level = extractNumber(lower, /ladder|rank|level/i, 3);
+    conditions.push({ id: nextId('c'), property: 'ladder_level', operator: 'less_equal', value: level });
+    nameParts.push('Low-Rank');
+  }
+
+  // ── High game level / veteran ──
   if (/high\s*level|endgame|end.?game|veteran|level\s*\d+|max\s*level/i.test(lower)) {
     const level = extractNumber(lower, /level/i, 50);
-    conditions.push({ id: nextId('c'), property: 'role_level', operator: 'greater_than', value: level });
-    nameParts.push('High-Level');
+    conditions.push({ id: nextId('c'), property: 'ladder_level', operator: 'greater_than', value: level });
+    nameParts.push('Veteran');
   }
 
-  // ── Low level / beginner ──
-  if (/low\s*level|beginner|newbie|noob|starter/i.test(lower)) {
-    const level = extractNumber(lower, /level/i, 10);
-    conditions.push({ id: nextId('c'), property: 'role_level', operator: 'less_than', value: level });
-    nameParts.push('Beginner');
+  // ── Ping / lag / network issues ──
+  if (/ping|lag|latency|network\s*issue|poor\s*conn|bad\s*connect|mạng kém/i.test(lower)) {
+    const ms = extractNumber(lower, /ping|ms|latency/i, 300);
+    conditions.push({ id: nextId('c'), property: 'avg_ping_max', operator: 'greater_than', value: ms });
+    nameParts.push('High-Ping');
+  }
+
+  // ── Gacha / pull ──
+  if (/gacha|pull|loot.?box|spin|quay|never\s*(gacha|pull|spin)|gacha.?virgin/i.test(lower)) {
+    const isPristine = /never|virgin|zero|0\s*pull|chưa quay/i.test(lower);
+    conditions.push({
+      id: nextId('c'),
+      property: 'gacha_pull_count',
+      operator: isPristine ? 'equal' : 'greater_than',
+      value: isPristine ? '0' : extractNumber(lower, /pull|gacha/i, 5),
+    });
+    nameParts.push(isPristine ? 'Gacha-Virgin' : 'Gacha-Active');
+  }
+
+  // ── Heavy session / long play ──
+  if (/long\s*session|heavy\s*play|play\s*a\s*lot|daily\s*player|session\s*>\s*\d+|nhiều giờ/i.test(lower)) {
+    const secs = extractNumber(lower, /session|minute|hour/i, 1800);
+    conditions.push({ id: nextId('c'), property: 'avg_session', operator: 'greater_than', value: secs });
+    nameParts.push('Heavy-Player');
+  }
+
+  // ── Many games / match count ──
+  if (/\d+\s*\+?\s*games?|games?\s*(>\s*\d+|more\s*than)|match\s*count|total\s*games?/i.test(lower)) {
+    const count = extractNumber(lower, /games?|match/i, 10);
+    conditions.push({ id: nextId('c'), property: 'total_games', operator: 'greater_equal', value: count });
+    nameParts.push('Experienced');
+  }
+
+  // ── VIP level ──
+  if (/\bvip\s*\d+|vip\s*level|vip\s*(high|>=?)/i.test(lower)) {
+    const level = extractNumber(lower, /vip/i, 3);
+    conditions.push({ id: nextId('c'), property: 'vip_level', operator: 'greater_equal', value: level });
+    nameParts.push('VIP');
   }
 
   // ── Platform detection ──
@@ -147,16 +194,11 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
     nameParts.push(country);
   }
 
-  // ── Payment amount thresholds ──
-  if (/payment.?d?30|30.?day.?pay|monthly\s*pay/i.test(lower)) {
-    const amount = extractNumber(lower, /payment|pay/i, 100000);
-    conditions.push({ id: nextId('c'), property: 'payment_d30', operator: 'greater_than', value: amount });
-    nameParts.push('Monthly Payers');
-  }
-  if (/payment.?d?90|90.?day.?pay|quarterly\s*pay/i.test(lower)) {
-    const amount = extractNumber(lower, /payment|pay/i, 500000);
-    conditions.push({ id: nextId('c'), property: 'payment_d90', operator: 'greater_than', value: amount });
-    nameParts.push('Quarterly Payers');
+  // ── Recharge in last 30 days ──
+  if (/recharge.?d?30|30.?day.?recharge|recharge\s*last\s*month|nạp\s*30\s*ngày/i.test(lower)) {
+    const amount = extractNumber(lower, /recharge|nạp/i, 200000);
+    conditions.push({ id: nextId('c'), property: 'recharge_d30', operator: 'greater_than', value: amount });
+    nameParts.push('Monthly Recharged');
   }
 
   // ── OR logic detection ──
@@ -177,12 +219,12 @@ export function parsePromptToConditions(prompt: string): ParsedIntent {
 /* ── Pre-built suggestion chips ── */
 
 export const AI_SUGGESTION_CHIPS = [
-  'Players churned over 30 days who have paid before',
-  'New users registered in 7 days, never purchased',
-  'High-value whales on iOS inactive 14 days',
-  'First-time buyers in Vietnam within 7 days',
-  'Active Android players level above 30',
-  'Free players in Thailand registered 3 days ago',
+  'Whale players churned 14 days, total recharge > 5000000',
+  'New users registered 7 days ago, never recharged',
+  'Gold+ ladder rank players who never recharged',
+  'Active players with ping > 300ms, need network compensation',
+  'Players with 10+ games and long sessions, never recharged',
+  'Gacha-virgin active users last 7 days',
 ];
 
 /** Simulate AI processing delay (200–600ms) */

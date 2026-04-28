@@ -19,7 +19,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@journey/*": ["../journey-builder/src/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../journey-builder/src"]
 }

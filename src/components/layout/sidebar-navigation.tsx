@@ -1,4 +1,4 @@
-import { Layers, BookTemplate, Rocket, BarChart3, TrendingUp, ChevronRight } from 'lucide-react';
+import { Layers, BookTemplate, Rocket, BarChart3, TrendingUp, ChevronRight, GitBranch } from 'lucide-react';
 import type { Phase } from '../../types/segment-builder-types';
 
 interface NavGroup {
@@ -13,6 +13,7 @@ const NAV_GROUPS: NavGroup[] = [
       { phase: 'builder', label: 'Segment Builder', icon: <Layers size={18} /> },
       { phase: 'templates', label: 'Template Library', icon: <BookTemplate size={18} /> },
       { phase: 'playbooks', label: 'Playbook Automation', icon: <Rocket size={18} /> },
+      { phase: 'journeys',  label: 'Journey',             icon: <GitBranch size={18} /> },
     ],
   },
   {

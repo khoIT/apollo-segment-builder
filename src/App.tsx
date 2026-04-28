@@ -6,6 +6,7 @@ import { TemplateLibrary } from './components/template-library/template-library'
 import { PlaybookAutomation } from './components/playbook-automation/playbook-automation';
 import { AnalysisTab } from './components/analysis/analysis-tab';
 import { CampaignStatsTab } from './components/campaign-stats/campaign-stats-tab';
+import { JourneyApp }      from './components/journey/journey-app';
 
 /** State passed when cloning from a template or playbook into builder */
 interface BuilderPreload {
@@ -49,6 +50,16 @@ export default function App() {
     });
     setActivePhase('builder');
   }, []);
+
+  /* Journey takes full height — no px/py padding */
+  if (activePhase === 'journeys') {
+    return (
+      <div className="flex h-screen bg-slate-50 overflow-hidden">
+        <SidebarNavigation activePhase={activePhase} onPhaseChange={setActivePhase} />
+        <JourneyApp />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">

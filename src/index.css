@@ -1,1 +1,24 @@
 @import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+/* Scan journey-builder source so Tailwind generates its utility classes */
+@source "../../journey-builder/src/**/*.{tsx,ts}";
+
+/* ── React Flow canvas overrides ── */
+.react-flow__node { border-radius: 12px; font-family: inherit; }
+.react-flow__edge-path { stroke-width: 2; }
+
+/* ── Journey node accent colours ── */
+.node-trigger     { border-left: 3px solid #7c3aed; }
+.node-condition   { border-left: 3px solid #d97706; }
+.node-wait-delay  { border-left: 3px solid #2563eb; }
+.node-wait-trigger{ border-left: 3px solid #0891b2; }
+.node-split       { border-left: 3px solid #059669; }
+.node-email       { border-left: 3px solid #dc2626; }
+.node-push        { border-left: 3px solid #ea580c; }
+.node-inapp       { border-left: 3px solid #db2777; }
+
+/* ── Selected node glow ── */
+.react-flow__node.selected > div {
+  box-shadow: 0 0 0 2px #7c3aed, 0 4px 16px rgba(124,58,237,0.15);
+}

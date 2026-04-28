@@ -66,9 +66,14 @@ export interface ConditionGroup {
   conditions: Condition[];
 }
 
+/** How the segment audience is evaluated */
+export type SegmentType = 'dynamic' | 'static' | 'realtime';
+
 export interface Segment {
   id: string;
   name: string;
+  /** Default: 'dynamic' when not set */
+  segmentType: SegmentType;
   groups: ConditionGroup[];
   groupLogic: LogicOperator;
   estimatedAudience: number;
@@ -132,4 +137,4 @@ export interface Playbook {
 
 /* ── Navigation ── */
 
-export type Phase = 'builder' | 'templates' | 'playbooks' | 'analysis' | 'campaign-stats';
+export type Phase = 'builder' | 'templates' | 'playbooks' | 'analysis' | 'campaign-stats' | 'journeys';
